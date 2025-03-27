@@ -1,6 +1,5 @@
 node_modules/
 @latest/
-test-results/
 .env
 .idea/
 .vscode/

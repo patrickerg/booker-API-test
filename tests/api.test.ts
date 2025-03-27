@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
 const baseUrl = "https://restful-booker.herokuapp.com";
-let bookingId: number;
 
 test.describe("Restful Booker API Tests", () => {
-  test("Create a new booking", async ({ request }) => {
+  test("Create, Fetch, and Delete a booking", async ({ request }) => {
+    // Create a new booking
     const newBooking = await request.post(`${baseUrl}/booking`, {
       data: {
         firstname: "Jim",
@@ -18,28 +18,33 @@ test.describe("Restful Booker API Tests", () => {
         additionalneeds: "Breakfast",
       },
     });
+
+    // Verify booking creation
     expect(newBooking.status()).toBe(200);
-
     const response = await newBooking.json();
-    //console.log(response);
     expect(response.bookingid).toBeDefined();
-    bookingId = response.bookingid;
-    //console.log(bookingId);
-  });
+    const bookingId = response.bookingid;
 
-  test("Fetch booking by given ID", async ({ request }) => {
-    expect(bookingId).toBeDefined();
+    // Fetch the created booking
     const fetchBooking = await request.get(`${baseUrl}/booking/${bookingId}`);
     expect(fetchBooking.status()).toBe(200);
-
     const fetchResponse = await fetchBooking.json();
-    //console.log(fetchResponse);
-  });
 
-  test("Delete a booking with given ID", async ({ request }) => {
-    const deleteBooking = await request.get(`${baseUrl}/booking/${bookingId}`);
-    expect(deleteBooking.status()).toBe(200);
-    const deleteResponse = await deleteBooking.json();
-    //console.log(deleteResponse);
+    // Verify booking details
+    expect(fetchResponse.firstname).toBe("Jim");
+    expect(fetchResponse.lastname).toBe("Brown");
+
+    // Attempt to delete the booking
+    const deleteBooking = await request.delete(
+      `${baseUrl}/booking/${bookingId}`,
+      {
+        headers: {
+          Authorization: "Basic YWRtaW46cGFzc3dvcmQxMjM=",
+        },
+      }
+    );
+
+    // Verify deletion (the API returns 201 for successful deletion)
+    expect(deleteBooking.status()).toBe(201);
   });
 });
